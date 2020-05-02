@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "559182627189",
+    "firebase_url": "https://product-app-ea489.firebaseio.com",
+    "project_id": "product-app-ea489",
+    "storage_bucket": "product-app-ea489.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559182627189:android:1104bd54c09f0ee932133c",
+        "android_client_info": {
+          "package_name": "com.horppe.productapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "559182627189-p733dnfh7vpn77g3qfnvq3un9sddhh0d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9pwmHduAPxl-YPhnqyhzAtL8SkpymzBg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "559182627189-p733dnfh7vpn77g3qfnvq3un9sddhh0d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "559182627189-br99i4oudod99omm4qv2n4amn1ifeeha.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.horppe.productapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
