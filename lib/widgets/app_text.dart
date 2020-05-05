@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
- const double defaultFontSize = 18;
+ const double defaultFontSize = 14;
  const TextStyle defaultTextStyle = TextStyle(
   fontFamily: 'Poppins'
  );

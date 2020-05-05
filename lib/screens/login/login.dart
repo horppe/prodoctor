@@ -30,7 +30,7 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
   bool showConfirmPassword = false;
   ScrollController _scrollController = new ScrollController();
   final _formkey = GlobalKey<FormState>();
-
+  bool logginIn = false;
   @override
   void didChangeMetrics() {
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom == 0.0;
@@ -52,7 +52,7 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
   void dispose() {
     // TODO: implement dispose
     WidgetsBinding.instance.removeObserver(this);
-    _formkey.currentState.deactivate();
+    // _formkey.currentState?.deactivate();
 
     super.dispose();
   }
@@ -83,17 +83,23 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
 
   login() async {
     if(_formkey.currentState.validate()){
-      String email = emailController.text;
+      setState(() {
+        logginIn = true;
+      });
+      String email = emailController.text.toLowerCase();
       String password = passwordController.text;
       AuthService authService = AuthService();
       FirebaseUser user = await  authService.signWithEmailandPassword(email: email, password: password);
-      if(user != null){
-      //  showAlert(title: "Success", messages: ["Log in Successful"]);
-        
-        Navigator.of(context).pushNamedAndRemoveUntil("Home", (_) => false);
+      setState(() {
+          logginIn = false;
+        });
+      if(user != null){         
+        Navigator.of(context).pushNamedAndRemoveUntil("Home", (Route<dynamic> route) => route.settings.name == "Home");
       } else {
+         
         showAlert(title: "Error", messages: ["An error occured while attempting to login. \nPlease try again."]);
       }
+      
     }
   }
 
@@ -168,7 +174,9 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
                           children: <Widget>[
                             GestureDetector(
                               onTap: () {
-                                Navigator.of(context).pop();
+                                if(Navigator.of(context).canPop()){
+                                    Navigator.of(context).pop();
+                                }
                               },
                               child: Icon(Entypo.cross,)
                             )
@@ -273,6 +281,7 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
                             ),
                             PrimaryButton(
                               text: "Log in",
+                              loading: logginIn,
                               onTap: () {
                                 login();
                               },

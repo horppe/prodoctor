@@ -30,14 +30,8 @@ class ProductService {
   Future<Stream<QuerySnapshot>> getAllStream() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     
-    db
-      .collection(ProductService.collectionName)
-      .where("userId", isEqualTo: user.uid).snapshots().listen((data) {
-        print("Hey");
-        print(data);
-      });
     try {
-      var resultStream = await db
+      var resultStream = db
       .collection(ProductService.collectionName)
       .where("userId", isEqualTo: user.uid)
       .snapshots();
@@ -49,12 +43,14 @@ class ProductService {
 
 
 
-  Future findById(String id){
-    // try {
-    //   var result = db.collection(ProductService.collectionName).document()
-    // } catch (e){
-    //   print(e.toString());
-    //   return null;
-    // }
+  Future<DocumentSnapshot> findById(String id) async{
+    
+    try {
+      var result = await db.collection(ProductService.collectionName).document(id).get();
+      return result;
+    } catch (e){
+      print(e.toString());
+      return null;
+    }
   }
 }

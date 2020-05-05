@@ -8,8 +8,6 @@ import 'package:practiceapp/utils/dimensions.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:practiceapp/widgets/app_button.dart';
 import 'package:practiceapp/widgets/app_text.dart';
-import 'package:practiceapp/widgets/helpers.dart';
-import 'package:flutter_signin_button/flutter_signin_button.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -31,7 +29,7 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
   bool showConfirmPassword = false;
   ScrollController _scrollController = new ScrollController();
   final _formkey = GlobalKey<FormState>();
-
+  bool signingUp = false;
   @override
   void didChangeMetrics() {
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom == 0.0;
@@ -61,12 +59,19 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
 
   signUp() async {
     if(_formkey.currentState.validate()){
-      String email = emailController.text;
+      setState(() {
+        signingUp = true;
+      });
+      String email = emailController.text.toLowerCase();
       String password = passwordController.text;
       AuthService authService = AuthService();
       FirebaseUser user = await  authService.createUserWithEmailandPassword(email: email, password: password);
     //  print("User created Successfully");
+    setState(() {
+        signingUp = false;
+      });
     if(user == null){
+      
       showDialog(context: context, builder: (BuildContext context) {
         
         return AlertDialog(
@@ -115,10 +120,12 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
           ],
         );
       });
+
+      Navigator.of(context).pushNamedAndRemoveUntil("Home", (Route<dynamic> route) => route.settings.name == "Home");
     }
     //  print(user);
     } else {
-      print("Invalid Form");
+      // print("Invalid Form");
     }
   }
 
@@ -310,6 +317,7 @@ class _SignUpState extends State<SignUp> with WidgetsBindingObserver {
                             ),
                             PrimaryButton(
                               text: "Sign Up",
+                              loading: signingUp,
                               onTap: () {
                                 signUp();
                               },
