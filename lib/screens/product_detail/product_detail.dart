@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:hive/hive.dart';
+import 'package:practiceapp/blocs/bloc_types.dart';
 import 'package:practiceapp/blocs/cart_bloc.dart';
+import 'package:practiceapp/blocs/product_bloc.dart';
 import 'package:practiceapp/models/cart_item.dart';
 import 'package:practiceapp/models/product.dart';
-import 'package:practiceapp/utils/colors.dart';
 import 'package:practiceapp/widgets/app_text.dart';
 import 'package:practiceapp/widgets/bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
+abstract class RemoveProductCallback {
+  void onDeleteSuccess();
+}
 class ProductDetail extends StatefulWidget {
-  // final Lesson lesson;
   ProductDetail({Key key}) : super(key: key);
 
   @override
   _ProductDetailState createState() => _ProductDetailState();
 }
 
-class _ProductDetailState extends State<ProductDetail> {
+class _ProductDetailState extends State<ProductDetail> implements RemoveProductCallback {
   CartBloc _cartBloc;
   ScrollController cartListController = new ScrollController();
 
@@ -30,11 +33,23 @@ class _ProductDetailState extends State<ProductDetail> {
     _cartBloc.cartEventSink.add((event));
   }
 
+  removeProduct(Product product){
+    ProductBloc productBloc = Provider.of<ProductBloc>(context, listen: false);
+    productBloc.productEventSink.add(RemoveProductEvent(productId: product.id, callback: this));
+  }
+
+  @override
+  void onDeleteSuccess() {
+    Navigator.of(context).pop();
+  }
+
   @override
   void initState() {
     super.initState();
     _cartBloc = Provider.of<CartBloc>(context, listen: false);
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +109,7 @@ class _ProductDetailState extends State<ProductDetail> {
             onTap: () {
               Navigator.pop(context);
             },
-            child: Icon(AntDesign.arrowleft, color: Colors.white),
+            child: Icon(MaterialCommunityIcons.arrow_left_circle, color: Colors.white, size: 35,),
           ),
         )
       ],
@@ -113,7 +128,7 @@ class _ProductDetailState extends State<ProductDetail> {
             child: Column(
               children: <Widget>[
                 bottomContentText,
-                Container(
+                  Container(
                     padding: EdgeInsets.symmetric(vertical: 16.0),
                     width: MediaQuery.of(context).size.width,
                     child: RaisedButton(
@@ -123,9 +138,25 @@ class _ProductDetailState extends State<ProductDetail> {
                               addToCart(product);
                             },
                       color: Color.fromRGBO(58, 66, 86, 1.0),
-                      child: AppBoldText(added ? "Added" : "Add to cart",
+                      child: AppText(added ? "Added" : "Add to cart",
                           textStyle: TextStyle(color: Colors.white)),
-                    ))
+                    )
+                  ),
+                  SizedBox(height: 5,),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    width: MediaQuery.of(context).size.width,
+                    child: RaisedButton(
+                      onPressed: added
+                          ? null
+                          : () {
+                              removeProduct(product);
+                            },
+                      color: Color.fromRGBO(58, 66, 86, 1.0),
+                      child: AppText( added ? "Remove from cart before removal" : "Delete",
+                          textStyle: TextStyle(color: Colors.white)),
+                    )
+                  ),
               ],
             ),
           ),
@@ -156,4 +187,5 @@ class _ProductDetailState extends State<ProductDetail> {
       },
     ));
   }
+
 }

@@ -2,7 +2,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:practiceapp/blocs/cart_bloc.dart';
+import 'package:practiceapp/blocs/product_bloc.dart';
+import 'package:practiceapp/models/product.dart';
 import 'package:practiceapp/screens/cart/cart.dart';
 import 'package:practiceapp/screens/home/home.dart';
 import 'package:practiceapp/screens/login/login.dart';
@@ -14,7 +18,10 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
-  
+  MyApp(){
+    Hive.initFlutter();
+    Hive.registerAdapter(ProductAdapter());
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -28,11 +35,12 @@ class MyApp extends StatelessWidget {
     }, child: MultiProvider(
         providers: [
           Provider<CartBloc>(create: (_) => CartBloc()),
+          Provider<ProductBloc>(create: (_) => ProductBloc()),
         ],
           child: MaterialApp(
             
       //  title: 'Flutter Demo',
-        initialRoute: "Home",
+        initialRoute: "Login",
         onGenerateRoute: (RouteSettings settings) {
           var routeName = settings.name;
           switch(routeName){

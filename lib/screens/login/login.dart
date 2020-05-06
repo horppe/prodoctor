@@ -14,7 +14,6 @@ import 'package:flutter_signin_button/flutter_signin_button.dart';
 class Login extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return _LoginState();
   }
 }
@@ -50,10 +49,7 @@ class _LoginState extends State<Login> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     WidgetsBinding.instance.removeObserver(this);
-    // _formkey.currentState?.deactivate();
-
     super.dispose();
   }
 

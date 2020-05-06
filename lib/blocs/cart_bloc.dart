@@ -1,30 +1,21 @@
-//Customised state @immutable
+ 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:bloc/bloc.dart';
+import 'package:practiceapp/blocs/bloc_types.dart';
 import 'package:practiceapp/models/cart_item.dart';
 import 'package:rxdart/subjects.dart';
-
-@immutable
-abstract class IncomingState {}
-
-class InitialIncomingState extends IncomingState {}
-
-class CartState extends IncomingState {
-  final List<CartItem> items;
-  CartState({@required this.items});
-}
-
-@immutable
-abstract class IncomingEvent {}
 
 class AddItemEvent extends IncomingEvent {
   final CartItem item;
   AddItemEvent({@required this.item});
 }
 
+
+class CartState extends IncomingState {
+  final List<CartItem> items;
+  CartState({@required this.items});
+}
 class RemoveItemEvent extends IncomingEvent {
   final String itemId;
   RemoveItemEvent({@required this.itemId});
@@ -92,51 +83,3 @@ class CartBloc {
   }
 
  }
-
-
-
-
-// class CartBloc extends Bloc<IncomingEvent, IncomingState> {
-
-//   final StreamController<IncomingEvent> _eventStreamController = StreamController<IncomingEvent>();
-//   final StreamController<IncomingState> _stateStreamController;
-
-//   Sink get updateUser => _eventStreamController.sink;
-//   Stream<User> get user => _eventStreamController.stream;
-
-//   CartBloc(){
-
-//   }
-
-
-//   @override
-//   IncomingState get initialState => CartState(items: List.unmodifiable([]));
-
-//   @override
-//   Stream<IncomingState> mapEventToState(IncomingEvent event) async* {
-//     print("mapEventToState");
-//     switch (event.runtimeType) { 
-//       case AddItemEvent : yield* mapAddItemtoState(event);
-//         break;
-//       case RemoveItemEvent : yield* mapRemoveItemToState(event);
-//         break;
-//       default:
-//     }
-//     yield null;
-//   }
-
-//   Stream<IncomingState> mapAddItemtoState(AddItemEvent event) async* {
-//     print("mapAddItemtoState");
-//     print(event);
-//     yield CartState(items: List.from((state as CartState).items)..add(event.item));
-//   }
-
-//   Stream<IncomingState> mapRemoveItemToState(RemoveItemEvent event) async* {
-//     print("mapRemoveItemToState");
-//     print(event);
-//     yield CartState(items: List.from((state as CartState).items)..removeWhere((item) {
-//       return  item.productId != event.itemId;
-//     }));
-//   }
-
-//  }

@@ -17,24 +17,27 @@ class ProductAdapter extends TypeAdapter<Product> {
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Product(
-      name: fields[0] as String,
-      price: fields[1] as double,
-      quantity: fields[2] as double,
-      userId: fields[3] as String,
+      id: fields[0] as String,
+      name: fields[1] as String,
+      price: fields[2] as double,
+      quantity: fields[3] as double,
+      userId: fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Product obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.name)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.price)
+      ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.quantity)
+      ..write(obj.price)
       ..writeByte(3)
+      ..write(obj.quantity)
+      ..writeByte(4)
       ..write(obj.userId);
   }
 }

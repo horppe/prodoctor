@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 part 'product.g.dart';
 
-@HiveType()
+@HiveType(typeId: 0)
 class Product {
 
 

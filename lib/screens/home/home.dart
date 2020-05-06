@@ -5,8 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:practiceapp/blocs/cart_bloc.dart';
-import 'package:practiceapp/models/cart_item.dart';
+import 'package:practiceapp/blocs/bloc_types.dart';
+import 'package:practiceapp/blocs/product_bloc.dart';
 import 'package:practiceapp/models/product.dart';
 import 'package:practiceapp/services/product.dart';
 import 'package:practiceapp/utils/colors.dart';
@@ -15,11 +15,15 @@ import 'package:practiceapp/utils/dimensions.dart';
 import 'package:practiceapp/widgets/bottom_sheet.dart';
 import 'package:practiceapp/widgets/text_input_one.dart';
 import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:direct_select_flutter/direct_select_container.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
+abstract class CreateProductCallback {
+  void onCreateError(String message);
+
+  void onCreateSucess(Product product);
+}
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
   final String title;
@@ -28,7 +32,7 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin implements CreateProductCallback  {
   int index = 1;
   final _formkey = GlobalKey<FormState>();
 
@@ -42,13 +46,37 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   bool creatingProduct = false;
   Stream<QuerySnapshot> productStream;
 
+  ProductBloc _productBloc; 
+
   initState() {
     super.initState();
-    productService.getAllStream().then((value) {
-      productStream = value;
-    });
-    Hive.initFlutter();
-    Hive.registerAdapter(ProductAdapter());
+    _productBloc = Provider.of<ProductBloc>(context, listen: false);
+  }
+
+
+
+  @override
+  void onCreateError(String message) {
+    // TODO: implement onCreateError
+    setState(() {
+        creatingProduct = false;
+      });
+    showAlert(messages: [message], title: "Unable to create product");
+
+  }
+
+  @override
+  void onCreateSucess(Product product) {
+    // TODO: implement onCreateSucess
+    setState(() {
+            creatingProduct = false;
+            index = 1;
+          });
+          showToast("Product ${product.name} was added sucessfully");
+          nameController.clear();
+          priceController.clear();
+          quantityController.clear();
+    
   }
 
   createProduct() async {
@@ -59,6 +87,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       String name = nameController.text;
       String price = priceController.text;
       String quantity = quantityController.text;
+
       FirebaseUser user = await FirebaseAuth.instance.currentUser();
 
       Product newProduct = Product(
@@ -66,19 +95,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           price: double.parse(price),
           quantity: double.parse(quantity),
           userId: user.uid);
-      final ProductService productService = ProductService();
+      
       try {
-        DocumentReference result = await productService.save(newProduct);
-        if (result != null) {
-          setState(() {
-            creatingProduct = false;
-            index = 1;
-          });
-          showToast("Product $name was added sucessfully");
-          nameController.clear();
-          priceController.clear();
-          quantityController.clear();
-        }
+        _productBloc.productEventSink.add(AddProductEvent(product: newProduct, callback: this));
       } catch (e) {
         setState(() {
           creatingProduct = false;
@@ -99,6 +118,43 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         backgroundColor: Colors.black87,
         textColor: Colors.white,
         fontSize: 16.0);
+  }
+  logOut(){
+      Navigator.of(context).pushNamedAndRemoveUntil("Login", (route){
+        return route.settings.name == "SignUp";
+      });
+    
+  }
+  showLogOut(){
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: AppBoldText("Log out?"),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  AppText("Are you sure you want to sign out?", textStyle: TextStyle(fontSize: 14))
+                ]
+              )
+                    
+              ),
+            actions: <Widget>[
+              FlatButton(
+                child: AppText('No, cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                child: AppText('Yes'),
+                onPressed: () {
+                  logOut();
+                },
+              ),
+            ],
+          );
+        });
   }
 
   showAlert({List<String> messages, String title}) {
@@ -289,6 +345,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   Widget renderProducts() {
+  print("Product Bloc: " + _productBloc.toString());
     return Padding(
       padding:
           EdgeInsets.symmetric(horizontal: Dimensions.getWidth("2", context)),
@@ -309,38 +366,44 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Container(
             constraints: BoxConstraints.expand(
                 height: Dimensions.getHeight("60", context)),
-            child: StreamBuilder<QuerySnapshot>(
-              stream: productStream,
+            child: StreamBuilder<IncomingState>(
+              // stream: productStream,
+              stream: _productBloc.state,
               builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.data == null) {
+                  AsyncSnapshot<IncomingState> snapshot) {
+                var showNone = (){
                   return Padding(
                     padding: const EdgeInsets.all(15.0),
-                    child: AppText(
+                    child: Center(child: AppText(
                       'No Products to display',
                       textStyle: TextStyle(fontSize: 14),
-                    ),
+                    ),) 
                   );
+                };
+                if (snapshot.data == null) {
+                  return showNone();
                 }
+
                 if (snapshot.hasError)
                   return new AppText('Error: ${snapshot.error}',
                       textStyle: TextStyle(fontSize: 14));
+
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
                     return new AppText(
-                      'Loading...',
-                      textStyle: TextStyle(fontSize: 14),
-                    );
-                  default:
+                      'Loading...' );
+                  default: 
+                  if((snapshot.data as ProductState).products.length < 1)
+                    return showNone();
+                  else
                     return new ListView(
-                      children: snapshot.data.documents
-                          .map((DocumentSnapshot document) {
-                        return renderProduct(
-                            product: Product.fromSnapshot(document));
-                      }).toList(),
+                      
+                      children: (snapshot.data as ProductState).products.map((prod) => renderProduct(product:  prod)).toList()
                     );
+                    
                 }
               },
+              
             ),
           )
         ],
@@ -351,11 +414,25 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    
+    
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0.0,
           centerTitle: true,
+          leading: Padding(
+              padding:
+                  EdgeInsets.only(left: Dimensions.getWidth("5", context)),
+              child: GestureDetector(
+                  onTap: () {
+                    showLogOut();
+                  },
+                  child: Icon(
+                    Icons.power_settings_new,
+                    color: Colors.black,
+                  )),
+            ),
           title: AppBoldText(
             "Home",
             textStyle: TextStyle(
@@ -381,16 +458,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
         body: DirectSelectContainer(
             child: SafeArea(
-                //  bottom: false,
                 child: new SingleChildScrollView(
           controller: scrollController,
           child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                // Header("Home", Icons.arrow_back, () {}),
                 Row(
                   children: <Widget>[
-                    // renderButton(Image.asset( index == 1 ?"assets/images/forward.png" : "assets/images/send-to-friends-inactive.png", width: 50,), isActive: index == 1, text: "Products", onTap: () => setState(() => index = 1) ),
                     renderButton(
                         Icon(Icons.view_list,
                             size: 40,
@@ -416,4 +490,5 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ]),
         ))));
   }
+
 }

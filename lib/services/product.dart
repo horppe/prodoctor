@@ -26,6 +26,10 @@ class ProductService {
 
   }
 
+  Future remove({String id}){
+    return db.collection(ProductService.collectionName).document(id).delete();
+  }
+
 
   Future<Stream<QuerySnapshot>> getAllStream() async {
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
@@ -42,6 +46,22 @@ class ProductService {
   }
 
 
+  
+  Future<DocumentSnapshot> findByName(String name) async{
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+
+    try {
+      var result = await db.collection(ProductService.collectionName)
+      .where("userId", isEqualTo: user.uid)
+      .where("name", isEqualTo: name)
+      .getDocuments();
+
+      return result.documents.first;
+    } catch (e){
+      print(e.toString());
+      return null;
+    }
+  }
 
   Future<DocumentSnapshot> findById(String id) async{
     
