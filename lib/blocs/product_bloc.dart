@@ -20,11 +20,6 @@ class NoProductState extends ProductState {
   NoProductState() : super(products: []);
 }
 
-class AlreadyExistState extends ProductState {
-  AlreadyExistState({List<Product> prods = const []})  : super(products: prods);
-}
-
-
 class AddProductEvent extends IncomingEvent {
   final Product product;
   final CreateProductCallback callback;
@@ -55,7 +50,6 @@ class ProductBloc {
   StreamSink<IncomingEvent> get productEventSink => _eventStreamController.sink;
 
   ProductBloc() {
-    print("Product Bloc Initialized");
     register();
     // Listen for UI event with _mapEventToState
     _eventStreamController.stream.listen(_mapEventToState);
